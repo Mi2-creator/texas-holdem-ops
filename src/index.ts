@@ -5,6 +5,7 @@
  *
  * OPS-0: External ops boundary & recharge reference scaffold (no value)
  * OPS-1: Manual recharge reference intake & grey flow linking (no money)
+ * OPS-2: Manual approval & two-man rule for recharge references (no money)
  *
  * CRITICAL CONSTRAINTS:
  * - EXTERNAL: Lives OUTSIDE texas-holdem-engine
@@ -156,7 +157,7 @@ export type {
 } from './mapping';
 
 // ============================================================================
-// APPROVALS
+// APPROVALS (OPS-0)
 // ============================================================================
 
 export {
@@ -168,6 +169,120 @@ export type {
   ConfirmationRequest,
   RejectionRequest,
   QueueItem,
+} from './approvals';
+
+// ============================================================================
+// OPS-2: APPROVAL TYPES
+// ============================================================================
+
+export {
+  // Enums
+  ApprovalStatus,
+  ApprovalDecision,
+  ApprovalErrorCode,
+
+  // ID Factories
+  createApprovalId,
+  createActorId,
+  createApprovalHash,
+
+  // Hash Utilities
+  APPROVAL_GENESIS_HASH,
+  computeApprovalHash,
+  computeApprovalRecordHash,
+
+  // Result Helpers
+  approvalSuccess,
+  approvalFailure,
+  createApprovalError,
+
+  // Validation
+  isValidApprovalRequestInput,
+  isValidApprovalDecisionInput,
+  isTerminalStatus,
+} from './approvals';
+
+export type {
+  ApprovalId,
+  ActorId,
+  ApprovalHash,
+  ApprovalError,
+  ApprovalResult,
+  ApprovalRequestInput,
+  ApprovalDecisionInput,
+  ApprovalRequestRecord,
+  ApprovalDecisionDetails,
+} from './approvals';
+
+// ============================================================================
+// OPS-2: APPROVAL RECORD
+// ============================================================================
+
+export {
+  createApprovalRequestRecord,
+  createApprovalDecisionRecord,
+  verifyRecordIntegrity,
+  verifyChainLink,
+  isRecordFrozen,
+} from './approvals';
+
+// ============================================================================
+// OPS-2: APPROVAL REGISTRY
+// ============================================================================
+
+export {
+  ApprovalRegistry,
+  createApprovalRegistry,
+  createTestApprovalRegistry,
+} from './approvals';
+
+export type {
+  ApprovalRegistryState,
+  ApprovalQueryOptions,
+} from './approvals';
+
+// ============================================================================
+// OPS-2: APPROVAL VIEWS
+// ============================================================================
+
+export {
+  getPendingApprovalsByPeriod,
+  getAllPendingApprovals,
+  getApprovalHistoryByRecharge,
+  getAllApprovalHistories,
+  getApprovalSummaryByActor,
+  getAllActorSummaries,
+  getOverallApprovalSummary,
+} from './approvals';
+
+export type {
+  PendingApprovalsByPeriod,
+  ApprovalHistoryByRecharge,
+  ApprovalSummaryByActor,
+  OverallApprovalSummary,
+} from './approvals';
+
+// ============================================================================
+// OPS-2: APPROVAL BOUNDARY GUARDS
+// ============================================================================
+
+export {
+  APPROVAL_FORBIDDEN_CONCEPTS,
+  APPROVAL_BOUNDARY_DECLARATION,
+  assertTwoManRule,
+  assertActorCanDecide,
+  assertValidApprovalRequestInput,
+  assertValidApprovalDecisionInput,
+  assertNoForbiddenConcepts as assertNoApprovalForbiddenConcepts,
+  assertRecordFrozen,
+  assertValidStatusTransition as assertValidApprovalStatusTransition,
+  assertNotTerminal,
+  guardApprovalRequest,
+  guardApprovalDecision,
+} from './approvals';
+
+export type {
+  ApprovalForbiddenConcept,
 } from './approvals';
 
 // ============================================================================
