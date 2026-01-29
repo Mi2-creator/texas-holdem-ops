@@ -8,6 +8,7 @@
  * OPS-2: Manual approval & two-man rule for recharge references (no money)
  * OPS-3: Grey risk limits & threshold analysis (ANALYSIS-ONLY, no enforcement)
  * OPS-4: Human risk acknowledgement & sign-off (MANUAL-ONLY, no action)
+ * OPS-5: External manual execution intent interface (FUTURE-CONSUMABLE, no execution)
  *
  * CRITICAL CONSTRAINTS:
  * - EXTERNAL: Lives OUTSIDE texas-holdem-engine
@@ -643,3 +644,169 @@ export type {
   // Guard Types
   AckForbiddenConcept,
 } from './risk-ack';
+
+// ============================================================================
+// OPS-5: EXTERNAL MANUAL EXECUTION INTENT INTERFACE
+// ============================================================================
+// CRITICAL: FUTURE-CONSUMABLE ONLY - Stores recommendations for external use
+// PASSIVE DATA LAYER - No execution, no push, no blocking, no state machines
+// PULL-BASED - External systems query this data, we never push
+// APPEND-ONLY, HASH-CHAINED - Immutable records for audit integrity
+// HUMAN-ASSERTED - Reports are human claims, not verified truth
+// ============================================================================
+
+export {
+  // Intent Types
+  IntentType,
+  EvidenceType,
+  IntentErrorCode,
+
+  // Intent ID Factories
+  createIntentId,
+  createEvidenceId,
+  createIntentHash,
+  createOperatorId,
+
+  // Intent Result Helpers
+  intentSuccess,
+  intentFailure,
+  createIntentError,
+
+  // Intent Hash Utilities
+  INTENT_GENESIS_HASH,
+  computeIntentHash,
+  computeIntentRecordHash,
+  computeIntentId,
+
+  // Intent Validation
+  isValidEvidenceReference,
+  isValidIntentInput,
+
+  // Intent Registry
+  ExecutionIntentRegistry,
+  createExecutionIntentRegistry,
+  createTestIntentRegistry,
+
+  // Evidence Binder
+  createRiskSignalRef,
+  createRiskAckRef,
+  createApprovalRef,
+  createRechargeRef,
+  createGreyFlowRef,
+  getEvidenceBindingSummary,
+  getCrossReferenceSummary,
+  getAllCrossReferences,
+  filterIntentsByEvidenceType,
+  getUniqueEvidenceIds,
+  countEvidenceByType,
+
+  // Report Types
+  ReportedOutcome,
+  ReportErrorCode,
+
+  // Report ID Factories
+  createReportId,
+  createReportHash,
+
+  // Report Result Helpers
+  reportSuccess,
+  reportFailure,
+  createReportError,
+
+  // Report Hash Utilities
+  REPORT_GENESIS_HASH,
+  computeReportHash,
+  computeReportRecordHash,
+  computeReportId,
+
+  // Report Validation
+  isValidReportInput,
+
+  // Report Registry
+  ExecutionReportRegistry,
+  createExecutionReportRegistry,
+  createTestReportRegistry,
+
+  // Views (READ-ONLY)
+  getIntentWithReports,
+  getAllIntentsWithReports,
+  getIntentSummary,
+  getAllIntentSummaries,
+  getOperatorActivity,
+  getRegistryStatistics,
+  getIntentsWithoutReports,
+  getIntentsWithCompletedReports,
+  filterIntentsByType,
+  filterReportsByOutcome,
+
+  // Boundary Guards
+  FORBIDDEN_EXECUTION_KEYWORDS,
+  FORBIDDEN_PUSH_KEYWORDS,
+  FORBIDDEN_BLOCKING_KEYWORDS,
+  FORBIDDEN_STATE_MACHINE_KEYWORDS,
+  FORBIDDEN_IMPORT_SOURCES,
+  checkForExecutionKeywords,
+  checkForPushKeywords,
+  checkForBlockingKeywords,
+  checkForStateMachineKeywords,
+  checkForForbiddenImport,
+  checkAllBoundaries,
+  assertNoExecutionKeywords,
+  assertNoPushKeywords,
+  assertNoBlockingKeywords,
+  assertNoStateMachineKeywords,
+  assertNoForbiddenImport,
+  assertAllBoundaries,
+  MODULE_DESIGN_CONSTRAINTS,
+} from './execution-intent';
+
+export type {
+  // Intent Branded ID Types
+  IntentId,
+  EvidenceId,
+  IntentHash,
+  OperatorId,
+
+  // Intent Error Types
+  IntentError,
+  IntentResult,
+
+  // Intent Core Types
+  EvidenceReference,
+  ExecutionIntentInput,
+  ExecutionIntentRecord,
+
+  // Intent Registry Types
+  IntentRegistryState,
+  IntentQueryOptions,
+
+  // Evidence Binder Types
+  EvidenceBindingSummary,
+  CrossReferenceSummary,
+
+  // Report Branded ID Types
+  ReportId,
+  ReportHash,
+
+  // Report Error Types
+  ReportError,
+  ReportResult,
+
+  // Report Core Types
+  ExecutionReportInput,
+  ExecutionReportRecord,
+
+  // Report Registry Types
+  ReportRegistryState,
+  ReportQueryOptions,
+
+  // View Types
+  IntentWithReportsView,
+  IntentSummaryView,
+  OperatorActivityView,
+  RegistryStatisticsView,
+
+  // Boundary Guard Types
+  BoundaryViolation as IntentBoundaryViolation,
+  BoundaryCheckResult as IntentBoundaryCheckResult,
+} from './execution-intent';
