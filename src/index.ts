@@ -10,6 +10,7 @@
  * OPS-4: Human risk acknowledgement & sign-off (MANUAL-ONLY, no action)
  * OPS-5: External manual execution intent interface (FUTURE-CONSUMABLE, no execution)
  * OPS-6: Grey flow & rake analytics (ANALYSIS-ONLY, no execution)
+ * OPS-7: Grey revenue attribution & exposure analysis (ANALYSIS-ONLY, no execution)
  *
  * CRITICAL CONSTRAINTS:
  * - EXTERNAL: Lives OUTSIDE texas-holdem-engine
@@ -1000,3 +1001,184 @@ export type {
   FlowBoundaryViolation,
   FlowBoundaryCheckResult,
 } from './grey-flow';
+
+// ============================================================================
+// OPS-7: GREY REVENUE ATTRIBUTION & EXPOSURE ANALYSIS
+// ============================================================================
+// CRITICAL: ANALYSIS-ONLY - Passive data layer for attribution tracking
+// PASSIVE / PULL-BASED - External systems query this data, we never push
+// REFERENCE-ONLY - Attribution records are references, not monetary values
+// EXPOSURE-ONLY - All metrics are exposure/ratio/share/index, NOT revenue
+// APPEND-ONLY, HASH-CHAINED - Immutable records for audit integrity
+// NO STATE MACHINES - No status transitions, no lifecycles, no workflows
+// NO ENGINE IMPORTS - No dependencies on engine or execution modules
+// ============================================================================
+
+export {
+  // Attribution Types - ID Factories
+  createAttributionId,
+  createSourceId,
+  createTargetId,
+  createPeriodId,
+  createAttributionHash,
+  createAttributionOperatorId,
+
+  // Attribution Types - Enums (classification only, NOT status)
+  AttributionKind,
+  ExposureMetricType,
+  AttributionEntityType,
+  AttributionErrorCode,
+
+  // Attribution Types - Result Helpers
+  attributionSuccess,
+  attributionFailure,
+  createAttributionError,
+
+  // Attribution Types - Hash Utilities
+  ATTRIBUTION_GENESIS_HASH,
+  computeAttributionHash,
+  computeAttributionRecordHash,
+  computeAttributionId,
+
+  // Attribution Types - Validation
+  isValidExposureMetric,
+  isValidAttributionInput,
+
+  // Attribution Registry
+  GreyAttributionRegistry,
+  createGreyAttributionRegistry,
+  createTestAttributionRegistry,
+
+  // Exposure Calculator
+  calculateExposureSummary,
+  calculateAllExposureSummaries,
+  calculateExposureDistribution,
+  calculateExposureTrend,
+  calculateExposureFromFlows,
+  calculateWeightedExposure,
+  compareExposure,
+
+  // Attribution Linking - ID Factory
+  createAttributionLinkId,
+
+  // Attribution Linking - Enums
+  AttributionLinkTargetType,
+
+  // Attribution Linking - Validation
+  isValidAttributionLinkInput,
+
+  // Attribution Linking - Linker Class
+  GreyAttributionLinker,
+  createGreyAttributionLinker,
+  createTestAttributionLinker,
+
+  // Exposure Views - Agent Views
+  getExposureByAgent,
+  getAllAgentExposures,
+
+  // Exposure Views - Club Views
+  getExposureByClub,
+  getAllClubExposures,
+
+  // Exposure Views - Table Views
+  getExposureByTable,
+
+  // Exposure Views - Period Views
+  getExposureByPeriod,
+
+  // Exposure Views - Trace Views
+  getExposureTrace,
+  getAllExposureTraces,
+
+  // Exposure Views - Overall
+  getOverallExposureSummary,
+
+  // Exposure Views - Trend
+  getExposureTrendView,
+
+  // Exposure Views - Filtered
+  getHighExposureAttributions,
+  getAttributionsByKind,
+
+  // Attribution Boundary Guards - Forbidden Lists
+  ATTRIBUTION_FORBIDDEN_FINANCIAL_KEYWORDS,
+  ATTRIBUTION_FORBIDDEN_REVENUE_KEYWORDS,
+  ATTRIBUTION_FORBIDDEN_EXECUTION_KEYWORDS,
+  ATTRIBUTION_FORBIDDEN_PUSH_KEYWORDS,
+  ATTRIBUTION_FORBIDDEN_STATE_MACHINE_KEYWORDS,
+  ATTRIBUTION_FORBIDDEN_IMPORT_SOURCES,
+
+  // Attribution Boundary Guards - Check Functions
+  checkForAttributionFinancialKeywords,
+  checkForAttributionRevenueKeywords,
+  checkForAttributionExecutionKeywords,
+  checkForAttributionPushKeywords,
+  checkForAttributionStateMachineKeywords,
+  checkForAttributionForbiddenImport,
+  checkAllAttributionBoundaries,
+
+  // Attribution Boundary Guards - Assertion Functions
+  assertNoAttributionFinancialKeywords,
+  assertNoAttributionRevenueKeywords,
+  assertNoAttributionExecutionKeywords,
+  assertNoAttributionPushKeywords,
+  assertNoAttributionStateMachineKeywords,
+  assertNoAttributionForbiddenImport,
+  assertAllAttributionBoundaries,
+  assertIsExposureMetric,
+  assertIsShareValue,
+
+  // Attribution Boundary Guards - Documentation
+  ATTRIBUTION_MODULE_DESIGN_CONSTRAINTS,
+} from './grey-attribution';
+
+export type {
+  // Attribution Types - Branded ID Types
+  AttributionId,
+  SourceId,
+  TargetId,
+  PeriodId,
+  AttributionHash,
+  AttributionOperatorId,
+
+  // Attribution Types - Error Types
+  AttributionError,
+  AttributionResult,
+
+  // Attribution Types - Core Types
+  ExposureMetric,
+  AttributionInput,
+  AttributionRecord,
+
+  // Attribution Registry Types
+  AttributionRegistryState,
+  AttributionQueryOptions,
+
+  // Exposure Calculator Types
+  ExposureSummary,
+  ExposureDistribution,
+  ExposureTrendPoint,
+  ExposureTrend,
+  FlowExposureInput,
+
+  // Attribution Linking - Branded ID Types
+  AttributionLinkId,
+
+  // Attribution Linking - Core Types
+  AttributionLinkInput,
+  AttributionLinkRecord,
+  AttributionLinkRegistryState,
+  AttributionLinksSummary,
+
+  // Exposure View Types
+  ExposureByAgentView,
+  ExposureByClubView,
+  ExposureByTableView,
+  ExposureByPeriodView,
+  ExposureTraceView,
+  OverallExposureSummaryView,
+
+  // Attribution Boundary Guard Types
+  AttributionBoundaryViolation,
+  AttributionBoundaryCheckResult,
+} from './grey-attribution';
