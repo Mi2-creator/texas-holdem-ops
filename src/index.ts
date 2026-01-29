@@ -6,6 +6,7 @@
  * OPS-0: External ops boundary & recharge reference scaffold (no value)
  * OPS-1: Manual recharge reference intake & grey flow linking (no money)
  * OPS-2: Manual approval & two-man rule for recharge references (no money)
+ * OPS-3: Grey risk limits & threshold analysis (ANALYSIS-ONLY, no enforcement)
  *
  * CRITICAL CONSTRAINTS:
  * - EXTERNAL: Lives OUTSIDE texas-holdem-engine
@@ -412,3 +413,125 @@ export type {
   RechargeTrace,
   OverallSummary,
 } from './views';
+
+// ============================================================================
+// OPS-3: GREY RISK LIMITS & THRESHOLD ANALYSIS
+// ============================================================================
+// CRITICAL: ANALYSIS-ONLY - This module observes and flags, NEVER enforces
+// NO BLOCKING, NO EXECUTION, NO AUTO-ADJUST, NO MUTATION
+// ============================================================================
+
+export {
+  // Enums
+  RiskSeverity,
+  RiskCategory,
+  ThresholdType,
+  RiskErrorCode,
+
+  // ID Factories
+  createRiskRuleId,
+  createRiskFlagId,
+  createRiskHash,
+
+  // Result Helpers
+  riskSuccess,
+  riskFailure,
+  createRiskError,
+
+  // Hash Utilities
+  RISK_GENESIS_HASH,
+  computeRiskHash,
+  computeRiskRecordHash,
+  computeFlagId,
+
+  // Validation
+  isValidThreshold,
+  isValidRiskRuleInput,
+
+  // Registry
+  RiskRuleRegistry,
+  createRiskRuleRegistry,
+  createTestRiskRuleRegistry,
+
+  // Evaluators (PURE FUNCTIONS - analysis only)
+  evaluateFrequency,
+  evaluateVelocity,
+  evaluateConcentration,
+  evaluateSkew,
+  evaluateRepeatedPending,
+  evaluateRechargeRisk,
+  evaluateApprovalRisk,
+  evaluateActorConcentration,
+  evaluateSkewRisk,
+  evaluatePendingPatternRisk,
+
+  // Views (READ-ONLY)
+  getRiskSummaryByPeriod,
+  getRiskSummaryByActor,
+  getRiskSummaryByClub,
+  getHighRiskFlagList,
+  getOverallRiskSummary,
+  getAllActorSummaries as getAllRiskActorSummaries,
+  getAllClubSummaries as getAllRiskClubSummaries,
+  aggregateAnalysisResults,
+
+  // Boundary Guards
+  RISK_FORBIDDEN_CONCEPTS,
+  RISK_FORBIDDEN_FUNCTION_PATTERNS,
+  assertNoRiskForbiddenConcepts,
+  assertNoRiskForbiddenFunctions,
+  assertAnalysisOnly,
+  assertFlagIsOutputOnly,
+  assertValidRiskRuleInput,
+  assertRuleFrozen,
+  guardRiskRuleRegistration,
+  RISK_BOUNDARY_DECLARATION,
+} from './risk-limits';
+
+export type {
+  // Branded ID Types
+  RiskRuleId,
+  RiskFlagId,
+  RiskHash,
+
+  // Error Types
+  RiskError,
+  RiskResult,
+
+  // Threshold Types
+  CountThreshold,
+  RateThreshold,
+  WindowThreshold,
+  PercentageThreshold,
+  Threshold,
+
+  // Core Types
+  RiskRule,
+  RiskRuleInput,
+  RiskFlag,
+  RiskRuleRecord,
+
+  // Registry Types
+  RiskRuleRegistryState,
+
+  // Input Types
+  TimestampedEvent,
+  RechargeAnalysisInput,
+  ApprovalAnalysisInput,
+  ActorAnalysisInput,
+  SkewAnalysisInput,
+  PendingPatternInput,
+
+  // Output Types
+  AnalysisResult,
+
+  // View Types
+  RiskSummaryByPeriod,
+  RiskSummaryByActor,
+  RiskSummaryByClub,
+  HighRiskFlagList,
+  OverallRiskSummary,
+
+  // Guard Types
+  RiskForbiddenConcept,
+} from './risk-limits';
