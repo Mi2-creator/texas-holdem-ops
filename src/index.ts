@@ -4,6 +4,7 @@
  * External Operations Boundary for texas-holdem-engine
  *
  * OPS-0: External ops boundary & recharge reference scaffold (no value)
+ * OPS-1: Manual recharge reference intake & grey flow linking (no money)
  *
  * CRITICAL CONSTRAINTS:
  * - EXTERNAL: Lives OUTSIDE texas-holdem-engine
@@ -184,3 +185,115 @@ export type {
   PushResponse,
   PushClientConfig,
 } from './exports';
+
+// ============================================================================
+// OPS-1: MANUAL RECHARGE
+// ============================================================================
+
+export {
+  // Types & Enums
+  RechargeSource,
+  DeclarationStatus,
+  RechargeErrorCode,
+
+  // ID Factories
+  createManualRechargeReferenceId,
+  createRegistryEntryId,
+  createHashValue,
+
+  // Hash Utilities
+  GENESIS_HASH,
+  computeHash,
+  computeEntryHash,
+
+  // Result Helpers
+  rechargeSuccess,
+  rechargeFailure,
+  createRechargeError,
+  isValidDeclarationInput,
+
+  // Registry
+  ManualRechargeRegistry,
+  createManualRechargeRegistry,
+  createTestRegistry,
+
+  // Boundary Guards
+  assertReferenceAmount,
+  assertNoMoneyMetadata,
+  assertValidStatusTransition,
+  assertEntryIntegrity,
+  assertEntryFrozen,
+  assertValidGreyFlowIds,
+  assertNoLinkingCycle,
+  assertValidGenesis,
+  assertValidChainLink,
+  guardDeclarationInput,
+  guardRegistryEntry,
+} from './recharge';
+
+export type {
+  ManualRechargeReferenceId,
+  RegistryEntryId,
+  HashValue,
+  ManualRechargeDeclaration,
+  ManualRechargeDeclarationInput,
+  ManualRechargeRegistryEntry,
+  ConfirmationInfo,
+  RechargeError,
+  RechargeResult,
+  RegistryState,
+  RegistryQueryOptions,
+} from './recharge';
+
+// ============================================================================
+// OPS-1: GREY FLOW LINKING
+// ============================================================================
+
+export {
+  // Grey Flow Linker
+  GreyFlowLinker,
+  createGreyFlowLinker,
+  createGreyFlowId,
+} from './linking';
+
+export type {
+  GreyFlowId,
+  LinkRequest,
+  LinkRecord,
+  LinkState,
+} from './linking';
+
+// ============================================================================
+// OPS-1: RECHARGE VIEWS
+// ============================================================================
+
+export {
+  // Period Views
+  getRechargesByPeriod,
+
+  // Club Views
+  getRechargesByClub,
+  getAllClubSummaries,
+
+  // Agent Views
+  getRechargesByAgent,
+  getAllAgentSummaries,
+
+  // Trace Views
+  getRechargeTrace,
+  getAllRechargeTraces,
+
+  // Aggregate Views
+  getOverallSummary,
+} from './views';
+
+export type {
+  PeriodSummary,
+  ClubSummary,
+  PlayerBreakdown,
+  AgentSummary,
+  ClubBreakdownForAgent,
+  TraceEntry,
+  RechargeTrace,
+  OverallSummary,
+} from './views';
