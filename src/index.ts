@@ -9,6 +9,7 @@
  * OPS-3: Grey risk limits & threshold analysis (ANALYSIS-ONLY, no enforcement)
  * OPS-4: Human risk acknowledgement & sign-off (MANUAL-ONLY, no action)
  * OPS-5: External manual execution intent interface (FUTURE-CONSUMABLE, no execution)
+ * OPS-6: Grey flow & rake analytics (ANALYSIS-ONLY, no execution)
  *
  * CRITICAL CONSTRAINTS:
  * - EXTERNAL: Lives OUTSIDE texas-holdem-engine
@@ -810,3 +811,192 @@ export type {
   BoundaryViolation as IntentBoundaryViolation,
   BoundaryCheckResult as IntentBoundaryCheckResult,
 } from './execution-intent';
+
+// ============================================================================
+// OPS-6: GREY FLOW & RAKE ANALYTICS
+// ============================================================================
+// CRITICAL: ANALYSIS-ONLY - Passive data layer for flow tracking
+// PASSIVE / PULL-BASED - External systems query this data, we never push
+// REFERENCE-ONLY - Flow records are references, not monetary values
+// RATIO-ONLY - Rake is ratio/share/index, NOT deduction or settlement
+// APPEND-ONLY, HASH-CHAINED - Immutable records for audit integrity
+// NO STATE MACHINES - No status transitions, no lifecycles, no workflows
+// NO ENGINE IMPORTS - No dependencies on engine or execution modules
+// ============================================================================
+
+export {
+  // Flow Types - ID Factories
+  createGreyFlowRecordId,
+  createFlowHash,
+  createEntityId,
+  createSessionId,
+  createHandId,
+  createFlowOperatorId,
+
+  // Flow Types - Enums (classification only, NOT status)
+  FlowDirection,
+  FlowSource,
+  EntityType,
+  FlowErrorCode,
+
+  // Flow Types - Result Helpers
+  flowSuccess,
+  flowFailure,
+  createFlowError,
+
+  // Flow Types - Hash Utilities
+  FLOW_GENESIS_HASH,
+  computeFlowHash,
+  computeFlowRecordHash,
+  computeFlowId,
+
+  // Flow Types - Validation
+  isValidFlowInput,
+
+  // Flow Registry
+  GreyFlowRegistry,
+  createGreyFlowRegistry,
+  createTestFlowRegistry,
+
+  // Flow Linking - ID Factory
+  createFlowLinkId,
+
+  // Flow Linking - Enums
+  FlowLinkType,
+
+  // Flow Linking - Validation
+  isValidFlowLinkInput,
+
+  // Flow Linking - Linker Class
+  GreyFlowLinker as FlowLinker,
+  createGreyFlowLinker as createFlowLinker,
+  createTestFlowLinker,
+
+  // Flow Aggregation - Core Functions
+  computeVolumeAggregation,
+  computeFrequencyAggregation,
+  computeDistributionAggregation,
+  computeRakeRatioAggregation,
+  computeTimeSeriesAggregation,
+
+  // Flow Aggregation - Entity-specific
+  computeEntityVolume,
+  computeEntityFrequency,
+  computeEntityRakeRatios,
+
+  // Flow Aggregation - Source-specific
+  computeVolumeBySource,
+  computeFrequencyBySource,
+
+  // Flow Views - Period Views
+  getFlowsByPeriod,
+  getFlowsByPeriods,
+
+  // Flow Views - Entity Views
+  getEntitySummary as getFlowEntitySummary,
+  getAllEntitySummaries as getAllFlowEntitySummaries,
+
+  // Flow Views - Agent Views
+  getAgentSummary as getFlowAgentSummary,
+  getAllAgentSummaries as getAllFlowAgentSummaries,
+
+  // Flow Views - Table Views
+  getTableSummary as getFlowTableSummary,
+
+  // Flow Views - Club Views
+  getClubSummary as getFlowClubSummary,
+  getAllClubSummaries as getAllFlowClubSummaries,
+
+  // Flow Views - Trace Views
+  getFlowTrace,
+  getAllFlowTraces,
+
+  // Flow Views - Overall
+  getOverallSummary as getFlowOverallSummary,
+
+  // Flow Views - Filtered
+  getFlowsByDirection,
+  getFlowsBySource,
+  getFlowsByOperator,
+
+  // Flow Boundary Guards - Forbidden Lists
+  FLOW_FORBIDDEN_FINANCIAL_KEYWORDS,
+  FLOW_FORBIDDEN_EXECUTION_KEYWORDS,
+  FLOW_FORBIDDEN_PUSH_KEYWORDS,
+  FLOW_FORBIDDEN_STATE_MACHINE_KEYWORDS,
+  FLOW_FORBIDDEN_IMPORT_SOURCES,
+
+  // Flow Boundary Guards - Check Functions
+  checkForFinancialKeywords,
+  checkForFlowExecutionKeywords,
+  checkForFlowPushKeywords,
+  checkForFlowStateMachineKeywords,
+  checkForFlowForbiddenImport,
+  checkAllFlowBoundaries,
+
+  // Flow Boundary Guards - Assertion Functions
+  assertNoFinancialKeywords,
+  assertNoFlowExecutionKeywords,
+  assertNoFlowPushKeywords,
+  assertNoFlowStateMachineKeywords,
+  assertNoFlowForbiddenImport,
+  assertAllFlowBoundaries,
+  assertIsRatioOnly,
+  assertIsUnitCount,
+
+  // Flow Boundary Guards - Documentation
+  FLOW_MODULE_DESIGN_CONSTRAINTS,
+} from './grey-flow';
+
+export type {
+  // Flow Types - Branded ID Types
+  GreyFlowRecordId,
+  FlowHash,
+  EntityId,
+  SessionId,
+  HandId,
+  FlowOperatorId,
+
+  // Flow Types - Error Types
+  FlowError,
+  FlowResult,
+
+  // Flow Types - Core Types
+  GreyFlowInput,
+  GreyFlowRecord,
+
+  // Flow Registry Types
+  FlowRegistryState,
+  FlowQueryOptions,
+
+  // Flow Linking - Branded ID Types
+  FlowLinkId,
+
+  // Flow Linking - Core Types
+  FlowLinkInput,
+  FlowLinkRecord,
+  FlowLinkRegistryState,
+  FlowLinksSummary,
+  ReferenceLinksSummary,
+
+  // Flow Aggregation Types
+  VolumeAggregation,
+  FrequencyAggregation,
+  DistributionAggregation,
+  RakeRatioAggregation,
+  TimeSeriesPoint,
+  TimeSeriesAggregation,
+
+  // Flow View Types
+  PeriodSummaryView,
+  EntitySummaryView,
+  AgentSummaryView,
+  TableSummaryView,
+  ClubSummaryView,
+  FlowTraceView,
+  OverallSummaryView,
+
+  // Flow Boundary Guard Types
+  FlowBoundaryViolation,
+  FlowBoundaryCheckResult,
+} from './grey-flow';
