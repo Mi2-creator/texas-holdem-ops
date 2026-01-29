@@ -7,6 +7,7 @@
  * OPS-1: Manual recharge reference intake & grey flow linking (no money)
  * OPS-2: Manual approval & two-man rule for recharge references (no money)
  * OPS-3: Grey risk limits & threshold analysis (ANALYSIS-ONLY, no enforcement)
+ * OPS-4: Human risk acknowledgement & sign-off (MANUAL-ONLY, no action)
  *
  * CRITICAL CONSTRAINTS:
  * - EXTERNAL: Lives OUTSIDE texas-holdem-engine
@@ -535,3 +536,110 @@ export type {
   // Guard Types
   RiskForbiddenConcept,
 } from './risk-limits';
+
+// ============================================================================
+// OPS-4: HUMAN RISK ACKNOWLEDGEMENT & SIGN-OFF
+// ============================================================================
+// CRITICAL: MANUAL-ONLY - Records human acknowledgements only, NO actions
+// NO BLOCKING, NO EXECUTION, NO AUTO-ADJUST, NO TRIGGER, NO MUTATION
+// ============================================================================
+
+export {
+  // Enums
+  AckDecision,
+  AckRole,
+  AckErrorCode,
+
+  // ID Factories
+  createRiskAckId,
+  createRiskSignalId,
+  createActorId as createAckActorId,
+  createAckHash,
+
+  // Result Helpers
+  ackSuccess,
+  ackFailure,
+  createAckError,
+
+  // Hash Utilities
+  ACK_GENESIS_HASH,
+  computeAckHash,
+  computeAckRecordHash,
+  computeAckId,
+
+  // Validation
+  isValidAckInput,
+  isTerminalDecision,
+  getRoleLevel,
+  canRoleEscalate,
+
+  // Record
+  createAckRecord,
+  verifyAckRecordIntegrity,
+  verifyAckChainLink,
+  isAckRecordFrozen,
+  getSignalId,
+  getActorId as getAckActorId,
+  isAcknowledgement,
+  isEscalation,
+  isRejection,
+
+  // Registry
+  RiskAckRegistry,
+  createRiskAckRegistry,
+  createTestRiskAckRegistry,
+
+  // Views (READ-ONLY)
+  getPendingByPeriod,
+  getHistoryBySignal,
+  getHistoryByActor,
+  getSummaryByDecision,
+  getOverallAckSummary,
+  getAllSignalHistories,
+  getAllActorHistories,
+  getEscalatedSignals,
+  getUnacknowledgedSignals,
+
+  // Boundary Guards
+  ACK_FORBIDDEN_CONCEPTS,
+  ACK_FORBIDDEN_FUNCTION_PATTERNS,
+  assertNoAckForbiddenConcepts,
+  assertNoAckForbiddenFunctions,
+  assertManualOnly,
+  assertHumanAcknowledgement,
+  assertValidAckInput,
+  assertAckRecordFrozen,
+  assertCanEscalate,
+  guardAckInput,
+  ACK_BOUNDARY_DECLARATION,
+} from './risk-ack';
+
+export type {
+  // Branded ID Types
+  RiskAckId,
+  RiskSignalId,
+  ActorId as AckActorId,
+  AckHash,
+
+  // Error Types
+  AckError,
+  AckResult,
+
+  // Core Types
+  RiskAckInput,
+  RiskAckRecord,
+
+  // Registry Types
+  AckRegistryState,
+  AckQueryOptions,
+
+  // View Types
+  PendingByPeriod,
+  HistoryBySignal,
+  HistoryByActor,
+  SummaryByDecision,
+  OverallAckSummary,
+
+  // Guard Types
+  AckForbiddenConcept,
+} from './risk-ack';
