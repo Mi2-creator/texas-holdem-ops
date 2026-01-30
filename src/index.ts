@@ -11,6 +11,7 @@
  * OPS-5: External manual execution intent interface (FUTURE-CONSUMABLE, no execution)
  * OPS-6: Grey flow & rake analytics (ANALYSIS-ONLY, no execution)
  * OPS-7: Grey revenue attribution & exposure analysis (ANALYSIS-ONLY, no execution)
+ * OPS-8: Grey incentive & behavior correlation analysis (ANALYSIS-ONLY, no execution)
  *
  * CRITICAL CONSTRAINTS:
  * - EXTERNAL: Lives OUTSIDE texas-holdem-engine
@@ -1182,3 +1183,157 @@ export type {
   AttributionBoundaryViolation,
   AttributionBoundaryCheckResult,
 } from './grey-attribution';
+
+// ============================================================================
+// OPS-8: GREY INCENTIVE & BEHAVIOR CORRELATION ANALYSIS
+// ============================================================================
+// CRITICAL: ANALYSIS-ONLY - Passive data layer for behavior signal tracking
+// PASSIVE / PULL-BASED - External systems query this data, we never push
+// SIGNAL-ONLY - All records are passive observations, NOT triggers
+// CORRELATION-ONLY - All metrics are correlations, NOT causation
+// APPEND-ONLY, HASH-CHAINED - Immutable records for audit integrity
+// NO STATE MACHINES - No status transitions, no lifecycles, no workflows
+// NO ENGINE IMPORTS - No dependencies on engine or execution modules
+// NO INCENTIVE ACTIONS - No rewards, bonuses, or incentive triggers
+// ============================================================================
+
+export {
+  // Signal Types - ID Factories
+  createSignalId,
+  createActorId as createBehaviorActorId,
+  createContextId,
+  createPeriodId as createBehaviorPeriodId,
+  createCorrelationId,
+  createSignalHash,
+
+  // Signal Types - Enums (classification only, NOT status)
+  SignalKind,
+  ActorType as BehaviorActorType,
+  ContextType,
+  CorrelationMetricType,
+
+  // Signal Types - Result Helpers
+  signalSuccess,
+  signalError,
+
+  // Signal Types - Hash Utilities
+  SIGNAL_GENESIS_HASH,
+  computeSignalHash,
+  computeCorrelationHash,
+
+  // Signal Types - Validation
+  isValidIntensity,
+  isValidDuration,
+  isValidConfidence,
+  isValidSampleSize,
+  isValidCorrelationMetric,
+
+  // Signal Registry
+  GreyBehaviorSignalRegistry,
+
+  // Correlation Analyzer - Summary Functions
+  calculateSignalSummary,
+  calculateAllSignalSummaries,
+  calculateActorSignalProfile,
+  calculateContextSignalDistribution,
+  calculatePeriodCorrelationSummary,
+
+  // Correlation Analyzer - Co-occurrence Functions
+  calculateSignalCoOccurrence,
+  calculateAllCoOccurrences,
+
+  // Correlation Analyzer - Trend Functions
+  calculateTrendAnalysis,
+
+  // Correlation Analyzer - Metric Functions
+  calculateCorrelationMetrics,
+  calculateIntensityElasticity,
+
+  // Correlation Views - Signal Views
+  buildCorrelationBySignalView,
+  buildAllCorrelationBySignalViews,
+
+  // Correlation Views - Actor Views
+  buildCorrelationByActorView,
+
+  // Correlation Views - Context Views
+  buildCorrelationByContextView,
+
+  // Correlation Views - Period Views
+  buildCorrelationByPeriodView,
+
+  // Correlation Views - Trace Views
+  buildCorrelationTraceView,
+
+  // Correlation Views - Summary Views
+  buildCorrelationSummaryView,
+
+  // Correlation Views - Top Views
+  buildTopActorsView,
+  buildTopContextsView,
+
+  // Behavior Boundary Guards - Forbidden Lists
+  FORBIDDEN_FINANCIAL_KEYWORDS as BEHAVIOR_FORBIDDEN_FINANCIAL_KEYWORDS,
+  FORBIDDEN_REVENUE_KEYWORDS as BEHAVIOR_FORBIDDEN_REVENUE_KEYWORDS,
+  FORBIDDEN_ACTION_KEYWORDS as BEHAVIOR_FORBIDDEN_ACTION_KEYWORDS,
+  FORBIDDEN_STATE_KEYWORDS as BEHAVIOR_FORBIDDEN_STATE_KEYWORDS,
+  FORBIDDEN_ENGINE_KEYWORDS as BEHAVIOR_FORBIDDEN_ENGINE_KEYWORDS,
+  FORBIDDEN_INCENTIVE_ACTION_KEYWORDS as BEHAVIOR_FORBIDDEN_INCENTIVE_KEYWORDS,
+  ALL_FORBIDDEN_KEYWORDS as BEHAVIOR_ALL_FORBIDDEN_KEYWORDS,
+
+  // Behavior Boundary Guards - Allowed Lists
+  ALLOWED_SIGNAL_KEYWORDS,
+  ALLOWED_CORRELATION_KEYWORDS,
+  ALLOWED_ANALYSIS_KEYWORDS,
+  ALLOWED_BEHAVIOR_KEYWORDS,
+
+  // Behavior Boundary Guards - Check Functions
+  containsForbiddenFinancialKeywords,
+  containsForbiddenRevenueKeywords,
+  containsForbiddenActionKeywords,
+  containsForbiddenStateKeywords,
+  containsForbiddenEngineKeywords,
+  containsForbiddenIncentiveActionKeywords,
+  containsAnyForbiddenKeywords,
+  findForbiddenKeywords,
+  validateSemanticSafety,
+  validateObjectKeys,
+  assertSemanticSafety,
+
+  // Behavior Boundary Guards - Documentation
+  MODULE_BOUNDARIES as BEHAVIOR_MODULE_BOUNDARIES,
+  getModuleBoundariesText,
+} from './grey-behavior';
+
+export type {
+  // Signal Types - Branded ID Types
+  SignalId,
+  ActorId as BehaviorActorId,
+  ContextId,
+  PeriodId as BehaviorPeriodId,
+  CorrelationId,
+  SignalHash,
+
+  // Signal Types - Core Types
+  CorrelationMetric,
+  SignalRecord,
+  SignalInput,
+  CorrelationRecord,
+  CorrelationInput,
+  SignalResult,
+
+  // Correlation Analyzer Types
+  SignalSummary,
+  ActorSignalProfile,
+  ContextSignalDistribution,
+  PeriodCorrelationSummary,
+  SignalCoOccurrence,
+  TrendAnalysis,
+
+  // Correlation View Types
+  CorrelationBySignalView,
+  CorrelationByActorView,
+  CorrelationByContextView,
+  CorrelationByPeriodView,
+  CorrelationTraceView,
+} from './grey-behavior';

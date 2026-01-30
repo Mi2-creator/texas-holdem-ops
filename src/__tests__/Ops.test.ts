@@ -160,13 +160,16 @@ describe('No Engine Imports', () => {
     // Exclude boundary guards files (they define the forbidden patterns)
     // Also exclude grey-flow module files (they can reference grey-flow in documentation)
     // Also exclude grey-attribution module files (they can reference grey-attribution in documentation)
-    // Also exclude main index.ts (it imports from grey-flow and grey-attribution modules)
+    // Also exclude grey-behavior module files (they can reference grey-behavior in documentation)
+    // Also exclude main index.ts (it imports from grey-flow, grey-attribution, and grey-behavior modules)
     const excludePatterns = [
       'OpsBoundaryGuards.ts',
       'GreyFlowBoundaryGuards.ts',
       'GreyAttributionBoundaryGuards.ts',
+      'GreyBehaviorBoundaryGuards.ts',
       '/grey-flow/',
       '/grey-attribution/',
+      '/grey-behavior/',
       'src/index.ts',
     ];
 
