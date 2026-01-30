@@ -161,15 +161,18 @@ describe('No Engine Imports', () => {
     // Also exclude grey-flow module files (they can reference grey-flow in documentation)
     // Also exclude grey-attribution module files (they can reference grey-attribution in documentation)
     // Also exclude grey-behavior module files (they can reference grey-behavior in documentation)
-    // Also exclude main index.ts (it imports from grey-flow, grey-attribution, and grey-behavior modules)
+    // Also exclude ops-query module files (they define query layer guards)
+    // Also exclude main index.ts (it imports from all OPS modules)
     const excludePatterns = [
       'OpsBoundaryGuards.ts',
       'GreyFlowBoundaryGuards.ts',
       'GreyAttributionBoundaryGuards.ts',
       'GreyBehaviorBoundaryGuards.ts',
+      'OpsQueryGuards.ts',
       '/grey-flow/',
       '/grey-attribution/',
       '/grey-behavior/',
+      '/ops-query/',
       'src/index.ts',
     ];
 

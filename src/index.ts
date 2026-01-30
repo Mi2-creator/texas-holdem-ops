@@ -12,6 +12,7 @@
  * OPS-6: Grey flow & rake analytics (ANALYSIS-ONLY, no execution)
  * OPS-7: Grey revenue attribution & exposure analysis (ANALYSIS-ONLY, no execution)
  * OPS-8: Grey incentive & behavior correlation analysis (ANALYSIS-ONLY, no execution)
+ * OPS-FREEZE: Read-only query & snapshot layer (READ-ONLY, no mutations)
  *
  * CRITICAL CONSTRAINTS:
  * - EXTERNAL: Lives OUTSIDE texas-holdem-engine
@@ -1337,3 +1338,100 @@ export type {
   CorrelationByPeriodView,
   CorrelationTraceView,
 } from './grey-behavior';
+
+// ============================================================================
+// OPS-FREEZE: READ-ONLY QUERY & SNAPSHOT LAYER
+// ============================================================================
+// CRITICAL: FINAL FREEZE - Read-only query interface for all OPS modules
+// READ-ONLY: Cannot write, trigger, execute, or acknowledge
+// NO ANALYTICS: Does not compute new metrics or correlations
+// NO TRANSFORMS: Passes through data without semantic changes
+// PULL-BASED: All queries are synchronous pulls
+// FROZEN: All outputs are immutable
+// DETERMINISTIC: Same input always produces same output
+// ============================================================================
+
+export {
+  // Query Types
+  QueryErrorCode,
+  querySuccess,
+  queryError,
+  isValidTimeScope,
+  isValidPeriodScope,
+  isValidEntityScope,
+  isValidQueryScope,
+  isValidOpsModule,
+  createSnapshotId,
+
+  // Query Registry
+  OpsQueryRegistry,
+  createOpsQueryRegistry,
+  createTestOpsQueryRegistry,
+
+  // View Catalog
+  getViewCatalog,
+  getViewsForModule,
+  viewExists,
+
+  // Query Guards - Forbidden Lists
+  FORBIDDEN_MUTATION_KEYWORDS,
+  FORBIDDEN_EXECUTION_KEYWORDS as QUERY_FORBIDDEN_EXECUTION_KEYWORDS,
+  FORBIDDEN_ENGINE_KEYWORDS as QUERY_FORBIDDEN_ENGINE_KEYWORDS,
+  FORBIDDEN_FINANCIAL_KEYWORDS as QUERY_FORBIDDEN_FINANCIAL_KEYWORDS,
+  FORBIDDEN_STATE_KEYWORDS as QUERY_FORBIDDEN_STATE_KEYWORDS,
+  FORBIDDEN_ASYNC_KEYWORDS,
+  ALL_FORBIDDEN_KEYWORDS as QUERY_ALL_FORBIDDEN_KEYWORDS,
+
+  // Query Guards - Check Functions
+  containsMutationKeywords,
+  containsExecutionKeywords as containsQueryExecutionKeywords,
+  containsEngineKeywords as containsQueryEngineKeywords,
+  containsFinancialKeywords as containsQueryFinancialKeywords,
+  containsStateKeywords as containsQueryStateKeywords,
+  containsAsyncKeywords,
+  containsAnyForbiddenKeywords as containsQueryForbiddenKeywords,
+  findForbiddenKeywords as findQueryForbiddenKeywords,
+
+  // Query Guards - Validation Functions
+  validateNoMutation,
+  validateNoExecution,
+  validateNoEngine,
+  validateNoFinancial,
+  validateNoAsync,
+  validateQueryLayerCompliance,
+  validationSuccess,
+  validationFailure,
+
+  // Query Guards - Assertion Functions
+  assertNoMutation,
+  assertNoExecution,
+  assertNoEngine,
+  assertQueryLayerCompliance,
+
+  // Query Constraints Documentation
+  QUERY_LAYER_CONSTRAINTS,
+  getQueryLayerConstraintsText,
+} from './ops-query';
+
+export type {
+  // Query Types
+  TimeScope,
+  PeriodScope,
+  EntityScope,
+  QueryScope,
+  OpsModule,
+  QuerySelector,
+  QueryResult,
+  QueryError as QueryErrorType,
+  QueryResponse,
+  QueryMetadata,
+  SnapshotId,
+  SnapshotMetadata,
+  SnapshotState,
+
+  // View Catalog Types
+  ViewCatalogEntry,
+
+  // Validation Types
+  ValidationResult,
+} from './ops-query';
