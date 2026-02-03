@@ -1,0 +1,84 @@
+# =============================================================================
+# Texas Hold'em Server - systemd Service Unit
+# =============================================================================
+# Installation:
+#   1. Copy binary to /usr/local/bin/texas-holdem-server
+#   2. Copy this file to /etc/systemd/system/texas-holdem.service
+#   3. Create env file: /etc/texas-holdem/env
+#   4. Create data dir: mkdir -p /var/lib/texas-holdem
+#   5. Create user: useradd -r -s /sbin/nologin texas-holdem
+#   6. Set permissions: chown -R texas-holdem:texas-holdem /var/lib/texas-holdem
+#   7. Enable service: systemctl daemon-reload && systemctl enable texas-holdem
+#   8. Start service: systemctl start texas-holdem
+# =============================================================================
+
+[Unit]
+Description=Texas Hold'em Poker Server
+Documentation=https://github.com/your-org/texas-holdem-client
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=texas-holdem
+Group=texas-holdem
+
+# Environment file
+EnvironmentFile=-/etc/texas-holdem/env
+
+# Override defaults
+Environment=HTTP_ADDR=:8080
+Environment=LOG_LEVEL=info
+Environment=STORAGE_MODE=file
+Environment=DATA_DIR=/var/lib/texas-holdem
+Environment=SHUTDOWN_TIMEOUT=30
+Environment=RATE_LIMIT_ENABLED=true
+Environment=RATE_LIMIT_RPS=10.0
+Environment=RATE_LIMIT_BURST=20
+
+# Working directory
+WorkingDirectory=/var/lib/texas-holdem
+
+# Binary path
+ExecStart=/usr/local/bin/texas-holdem-server
+
+# Graceful shutdown
+ExecStop=/bin/kill -TERM $MAINPID
+TimeoutStopSec=35
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+MemoryDenyWriteExecute=true
+LockPersonality=true
+
+# Allow write to data directory
+ReadWritePaths=/var/lib/texas-holdem
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=4096
+MemoryMax=512M
+CPUQuota=200%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=texas-holdem
+
+[Install]
+WantedBy=multi-user.target
