@@ -30,7 +30,12 @@ bin/
 
 # Environment (contains secrets)
 .env
+.env.prod
 
 # Data directories
 data/
 backups/
+
+# Static site builds (managed by sync-play.sh / rsync, not version controlled)
+play/
+landing/
