@@ -14,15 +14,15 @@ LINES="${2:-100}"
 case "$MODE" in
     follow|-f)
         echo "[OPS] Following logs (Ctrl+C to exit)..."
-        docker compose -f docker/docker-compose.yml logs -f --tail="$LINES"
+        docker compose --env-file .env -f docker/docker-compose.yml logs -f --tail="$LINES"
         ;;
     tail|-n)
         echo "[OPS] Last $LINES log lines:"
-        docker compose -f docker/docker-compose.yml logs --tail="$LINES"
+        docker compose --env-file .env -f docker/docker-compose.yml logs --tail="$LINES"
         ;;
     all)
         echo "[OPS] All logs:"
-        docker compose -f docker/docker-compose.yml logs
+        docker compose --env-file .env -f docker/docker-compose.yml logs
         ;;
     *)
         echo "Usage: $0 [follow|tail|all] [lines]"

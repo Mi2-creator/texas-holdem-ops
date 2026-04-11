@@ -1,0 +1,76 @@
+# =============================================================================
+# Caddy Configuration for Texas Hold'em
+#
+# Two modes:
+#   1. Single domain/IP mode (DOMAIN=IP or DOMAIN=example.com, API_DOMAIN empty):
+#      - /            -> landing page (if /srv/landing exists)
+#      - /health, /v1/* -> reverse proxy to app
+#
+#   2. Split domain mode (DOMAIN=pokeryapp.com, API_DOMAIN=api.pokeryapp.com):
+#      - DOMAIN       -> landing page
+#      - API_DOMAIN   -> reverse proxy to app
+# =============================================================================
+
+# --- Root domain / single domain ---
+{$DOMAIN:localhost} {
+    # API routes — reverse proxy to Go backend
+    @api {
+        path /health
+        path /v1/*
+        path /ws/*
+    }
+    reverse_proxy @api app:8080
+
+    # WebSocket support
+    @websocket {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websocket app:8080
+
+    # Landing page — static files for everything else
+    root * /srv/landing
+    file_server
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+
+    log {
+        output file /data/caddy/access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}
+
+# --- API subdomain (only active when API_DOMAIN is set and differs from DOMAIN) ---
+{$API_DOMAIN:} {
+    reverse_proxy app:8080
+
+    # WebSocket support
+    @websocket {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    reverse_proxy @websocket app:8080
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+
+    log {
+        output file /data/caddy/api-access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}

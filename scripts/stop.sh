@@ -13,7 +13,7 @@ MODE="${1:-docker}"
 case "$MODE" in
     docker)
         echo "[OPS] Stopping Docker Compose services..."
-        docker compose -f docker/docker-compose.yml down
+        docker compose --env-file .env -f docker/docker-compose.yml down
         echo "[OPS] Services stopped"
         ;;
     native)

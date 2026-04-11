@@ -20,7 +20,7 @@ MODE="${1:-docker}"
 case "$MODE" in
     docker)
         echo "[OPS] Starting server with Docker Compose..."
-        docker compose -f docker/docker-compose.yml up -d
+        docker compose --env-file .env -f docker/docker-compose.yml up -d
         echo "[OPS] Waiting for health check..."
         sleep 3
         ./scripts/status.sh

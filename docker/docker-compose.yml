@@ -1,13 +1,56 @@
 # =============================================================================
 # Texas Hold'em Server - Docker Compose Production Configuration
 # =============================================================================
-version: "3.8"
 
 services:
-  texas-holdem:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — primary datastore for wallet, ledger, topup orders, audit logs
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: texas-holdem-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${DB_USER:-texasholdem}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: ${DB_NAME:-texasholdem}
+
+    ports:
+      - "${DB_PORT:-5432}:5432"
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-texasholdem} -d ${DB_NAME:-texasholdem}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    networks:
+      - texas-holdem-net
+
+  # ---------------------------------------------------------------------------
+  # App — Go backend server
+  # ---------------------------------------------------------------------------
+  app:
     build:
       context: ${SERVER_SRC:-../../texas-holdem-client}
-      dockerfile: ${PWD}/docker/Dockerfile
+      dockerfile: ../texas-holdem-ops/docker/Dockerfile
       args:
         VERSION: ${VERSION:-dev}
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
@@ -16,9 +59,10 @@ services:
     container_name: texas-holdem-server
     restart: unless-stopped
 
-    # Environment configuration
-    env_file:
-      - ../.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
     environment:
       - HTTP_ADDR=${HTTP_ADDR:-:8080}
       - LOG_LEVEL=${LOG_LEVEL:-info}
@@ -31,54 +75,59 @@ services:
       - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-true}
       - RATE_LIMIT_RPS=${RATE_LIMIT_RPS:-10.0}
       - RATE_LIMIT_BURST=${RATE_LIMIT_BURST:-20}
+      # PostgreSQL connection
+      - DB_DRIVER=${DB_DRIVER:-postgres}
+      - DB_DSN=postgres://${DB_USER:-texasholdem}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-texasholdem}?sslmode=${DB_SSLMODE:-disable}
+      # CORS (comma-separated origins allowed for cross-origin requests)
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+      # Admin
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
 
-    # Port mapping
     ports:
       - "${HOST_PORT:-8080}:8080"
 
-    # Persistent storage (bind mount for local dev, named volume for prod)
     volumes:
       - ../data:/data
+      - ../backups:/backups
 
-    # Health check
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 5s
+      start_period: 10s
 
-    # Resource limits (production safety)
     deploy:
       resources:
         limits:
-          cpus: '2.0'
+          cpus: '1.0'
           memory: 512M
         reservations:
           cpus: '0.25'
           memory: 64M
 
-    # Security options
     security_opt:
       - no-new-privileges:true
-    read_only: false
 
-    # Logging configuration
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "5"
 
-    # Network
     networks:
       - texas-holdem-net
 
-# Named volumes for persistence
+# Named volumes
 volumes:
-  texas-holdem-data:
+  pgdata:
+    # If migrating from an older project name, set PGDATA_VOLUME_NAME to the old volume
+    # e.g. PGDATA_VOLUME_NAME=docker_pgdata
+    name: ${PGDATA_VOLUME_NAME:-}
 
-# Network configuration
+# Network
 networks:
   texas-holdem-net:
     driver: bridge

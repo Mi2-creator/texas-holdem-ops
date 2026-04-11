@@ -1,0 +1,66 @@
+# =============================================================================
+# Production override — use with: docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml
+# Adds Caddy reverse proxy, removes public postgres/app ports
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — no public port in production
+  # ---------------------------------------------------------------------------
+  postgres:
+    ports: !override []
+
+  # ---------------------------------------------------------------------------
+  # App — no public port (Caddy proxies)
+  # ---------------------------------------------------------------------------
+  app:
+    ports: !override []
+
+  # ---------------------------------------------------------------------------
+  # Caddy — reverse proxy with automatic HTTPS
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    container_name: texas-holdem-caddy
+    restart: unless-stopped
+
+    depends_on:
+      app:
+        condition: service_healthy
+
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - API_DOMAIN=${API_DOMAIN:-api.localhost}
+
+    ports:
+      - "80:80"
+      - "${CADDY_HTTPS_PORT:-443}:443"
+      - "${CADDY_HTTPS_PORT:-443}:443/udp"
+
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - ../data/caddy:/data/caddy
+      - ../landing:/srv/landing:ro
+      - ../play:/srv/play:ro
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:2019/config/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    networks:
+      - texas-holdem-net
+
+volumes:
+  caddy_data:
+  caddy_config:
