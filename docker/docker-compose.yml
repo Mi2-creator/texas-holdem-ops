@@ -75,15 +75,22 @@ services:
       - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-true}
       - RATE_LIMIT_RPS=${RATE_LIMIT_RPS:-10.0}
       - RATE_LIMIT_BURST=${RATE_LIMIT_BURST:-20}
-      # PostgreSQL connection
+      # PostgreSQL connection. DB_DSN may be set in .env to point at an
+      # external PostgreSQL (managed or self-hosted). When unset, it composes
+      # a DSN for the bundled "postgres" service in docker-compose.yml.
       - DB_DRIVER=${DB_DRIVER:-postgres}
-      - DB_DSN=postgres://${DB_USER:-texasholdem}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-texasholdem}?sslmode=${DB_SSLMODE:-disable}
+      - DB_DSN=${DB_DSN:-postgres://${DB_USER:-texasholdem}:${DB_PASSWORD:-changeme}@postgres:5432/${DB_NAME:-texasholdem}?sslmode=${DB_SSLMODE:-disable}}
       # CORS (comma-separated origins allowed for cross-origin requests)
       - CORS_ORIGINS=${CORS_ORIGINS:-}
       # Admin
       - ADMIN_TOKEN=${ADMIN_TOKEN:-}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      # Telegram risk alert fan-out. When both are set, recordRisk()
+      # emits a TG message on CRITICAL events + WARN events in the
+      # same_ip_multi_account allowlist. Empty values = silent no-op.
+      - TG_BOT_TOKEN=${TG_BOT_TOKEN:-}
+      - TG_CHAT_ID=${TG_CHAT_ID:-}
 
     ports:
       - "${HOST_PORT:-8080}:8080"
