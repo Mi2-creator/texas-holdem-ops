@@ -3,7 +3,9 @@
 # Multi-stage build for minimal production image
 # =============================================================================
 
-# Build stage
+# Build stage. Stays on 1.22 to keep the build image RAM-light for
+# the 2 GiB prod host — x/crypto is pinned at v0.27 (go 1.22 compatible)
+# in go.mod so bcrypt works without needing 1.25+ tooling.
 FROM golang:1.22-alpine AS builder
 
 # Install build dependencies
