@@ -49,6 +49,12 @@ if [[ ! -d "${CLIENT_SRC}/server/go" ]]; then
     exit 1
 fi
 
+# Sync the CF CIDR list into the Go source before rsync. This is a
+# no-op if config/cf_cidrs.txt hasn't drifted from the Go file, so the
+# normal deploy cost is zero. The separate refresh_cf_cidrs.sh is what
+# actually changes the config file (weekly CI / on-demand).
+"${SCRIPT_DIR}/sync_cf_cidrs_to_server.sh"
+
 # Build-identity vars — injected into the Docker image as build args so
 # /health reports real values instead of "dev" / "unknown".
 # The client repo is not a git repo, so GIT_COMMIT tracks the ops repo state

@@ -44,6 +44,75 @@ This project is a **mobile App (iOS/Android) + remote backend API** architecture
 | Restart | `make restart-prod` |
 | Rollback | `make rollback-prod` |
 
+### Read-only Production Probes
+
+| Scope | Command | Fails when |
+|---|---|---|
+| Full stack (one-shot) | `make check-prod-stack` | any sub-step below fails |
+| Exposure boundary | `make check-exposure` | compose ports / domain split / UFW / probe mismatch |
+| External PG readiness | `make check-db-external-ready` | env template / compose overlay / backup-restore scripts / docs misaligned |
+| Backup freshness | `make check-backup-freshness` | no backup / empty / older than 24h / bad naming / restore script missing |
+| Ledger audit only | `make check-ledger-audit` | `real_invariant_break_count > 0`, auth, or schema mismatch |
+| Raw app health | `curl -sf https://$API_DOMAIN/health` | `status != "ok"` |
+
+**When to run what:**
+- **Before switching to external PG / after editing compose overlays or backup scripts** → `make check-db-external-ready` — confirms the env template has `DB_EXTERNAL`/`DB_DSN`, compose overlay parks postgres and resets `app.depends_on`, backup/restore scripts have both bundled and external paths, and docs are aligned. Also snapshots the live `/health` to show the current `db_driver` / `data_store`. Use `SKIP_PROBE=1` when network is unavailable.
+- **After compose / infra / UFW / domain changes** → `make check-exposure` — verifies compose port lockdown, three-domain split, UFW whitelist (22/80/443/2222 only), and live endpoint reachability. Fails with the first mismatch. Use `SKIP_UFW=1` when SSH is unavailable; use `SKIP_PROBE=1` when network is unavailable.
+- **Daily / after `make backup-pg`** → `make check-backup-freshness` — checks that `./backups/` has at least one `pg-*.sql.gz`, the latest is non-zero and younger than 24h (override with `BACKUP_MAX_AGE_HOURS`), filename matches `pg-<name>-YYYYMMDD_HHMMSS.sql.gz`, and `restore_postgres.sh` is present and executable. Fails = someone forgot to run the backup or the cron silently died.
+- **Daily / before any deploy / after any deploy** → `make check-prod-stack` — covers app health, ledger invariants, play admin routes, and one admin-only read. Any red = investigate before proceeding.
+- **After a ledger-shape change or suspicious wallet report** → `make check-ledger-audit` alone, possibly with `AUDIT_PERIOD=week`.
+- **Just asking "is the server up?"** → hit `/health` directly. Look for `status`, `version`, `git_commit`, `build_time`, `storage_mode`, `db_driver`, `data_store`. If `status` is anything other than `ok`, go straight to `make logs-prod`.
+- **Ready to cut over to external PG** → read `docs/DB_CUTOVER.md` end-to-end first, then `make print-db-cutover` to get the command cheatsheet. Run section F checklist before touching anything. Rollback steps are in section D.
+
+### Cloudflare CIDR Refresh
+
+The server's `extractIP()` gate only trusts `CF-Connecting-IP` when the
+TCP peer is in a published Cloudflare range. Keeping that list current
+is automated:
+
+| Command | Purpose |
+|---|---|
+| `make cf-cidrs-refresh` | Pull CF feeds, rewrite `config/cf_cidrs.txt`. Exit 1 on drift. |
+| `make cf-cidrs-sync` | Regenerate `client/server/go/api/cloudflare_cidr.go` from the config file. No-op when already in sync. |
+| *(auto)* `deploy_backend_safe.sh` | Runs `cf-cidrs-sync` pre-rsync so every deploy ships the current list. |
+| *(auto)* `.github/workflows/cf-cidrs-refresh.yml` | Weekly (Mon 06:00 UTC) — runs refresh, opens PR on drift. |
+
+**Typical operator flow:**
+1. GH Action opens a PR titled `cf-cidrs: refresh Cloudflare edge ranges (YYYY-MM-DD)`.
+2. Review the diff (should be pure add/remove of CIDR lines).
+3. Merge.
+4. Next `make deploy-backend-safe` regenerates the Go source and ships it.
+
+**Manual force refresh:** `make cf-cidrs-refresh` locally, commit if it rewrote, push, merge, redeploy.
+
+**Failure modes:**
+- GH Action fails (feed fetch error) → standard workflow-failure notification.
+- Refresh says "no change" for months → CF simply hasn't published anything; that's expected (edits happen ~once a year).
+- `cf-cidrs-sync` reports "rewrote" on a deploy that wasn't preceded by a refresh → someone edited the Go slice by hand; the generator reverts the hand edit next deploy. Edit `config/cf_cidrs.txt` instead.
+
+### Ledger Audit (read-only)
+
+Minimal daily probe against the live `R2` audit endpoint.
+
+```bash
+make check-ledger-audit
+```
+
+What it does:
+
+1. Reads `API_DOMAIN` and `ADMIN_TOKEN` from `.env.prod` (falls back to `.env`). The token is never printed.
+2. Calls `GET https://$API_DOMAIN/v1/admin/ledger/audit?period=today&limit=100` with `X-Admin-Token`.
+3. Prints the four summary counters:
+   - `consistent_count`
+   - `audit_only_exempt_count`
+   - `legacy_schema_row_count`
+   - `real_invariant_break_count`
+4. Exits `0` when `real_invariant_break_count == 0`; exits `1` (and prints `[ALERT]`) when it is positive, or when auth / network / schema errors occur.
+
+Overrides (optional): `AUDIT_PERIOD`, `AUDIT_LIMIT`, `AUDIT_SCHEME`.
+
+No cron, no external alerting is wired up — run it manually, or hook the exit code into whatever scheduler you already trust.
+
 ---
 
 ## Server Architecture (Vultr)

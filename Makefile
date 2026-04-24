@@ -6,7 +6,10 @@
         clean build-local env-check soft-launch readonly shutdown mode-normal \
         ps health backup-pg restore-pg psql \
         prod-env-check prod-config deploy-prod check-prod backup-prod \
-        restore-prod logs-prod restart-prod rollback-prod
+        restore-prod logs-prod restart-prod rollback-prod \
+        deploy-backend-safe check-ledger-audit check-prod-stack check-exposure \
+        check-db-external-ready check-backup-freshness print-db-cutover \
+        cf-purge-play cf-cidrs-sync cf-cidrs-refresh
 
 # Default target
 help:
@@ -49,13 +52,25 @@ help:
 	@echo "Production (remote):"
 	@echo "  make prod-env-check - Validate .env.prod"
 	@echo "  make prod-config    - Show resolved prod compose config"
-	@echo "  make deploy-prod    - Deploy to production server"
+	@echo "  make deploy-prod        - Deploy to production server (full: ops+server+.env)"
+	@echo "  make deploy-backend-safe - Deploy ONLY server/go + rebuild app with VERSION/GIT_COMMIT/BUILD_TIME injected (no .env overwrite)"
 	@echo "  make check-prod     - Check production health"
 	@echo "  make backup-prod    - Backup production PostgreSQL"
 	@echo "  make restore-prod   - Restore production PostgreSQL"
 	@echo "  make logs-prod      - View production logs"
 	@echo "  make restart-prod   - Restart production services"
 	@echo "  make rollback-prod  - Rollback production deployment"
+	@echo ""
+	@echo "Audit:"
+	@echo "  make check-ledger-audit - Read-only ledger audit probe (exit 1 if real_invariant_break_count>0)"
+	@echo "  make check-prod-stack   - Full read-only prod probe (/health + ledger audit + play admin routes + funding-overview)"
+	@echo "  make check-exposure     - Exposure boundary audit (compose ports + domain split + UFW + probes)"
+	@echo "  make check-db-external-ready - External PG readiness audit (env + compose + backup/restore + docs + /health)"
+	@echo "  make check-backup-freshness  - Backup freshness audit (dir + file + age + naming + restore script)"
+	@echo "  make print-db-cutover        - Print external PG cutover/rollback command cheatsheet (read-only)"
+	@echo ""
+	@echo "Frontend cache:"
+	@echo "  make cf-purge-play           - Purge play.pokeryapp.com entry URLs from Cloudflare (requires CF_ZONE_ID + CF_API_TOKEN in .env.prod)"
 
 # -----------------------------------------------------------------------------
 # Configuration
@@ -302,6 +317,9 @@ prod-config:
 deploy-prod:
 	@./scripts/prod/deploy_prod.sh
 
+deploy-backend-safe:
+	@./scripts/deploy_backend_safe.sh
+
 check-prod:
 	@./scripts/prod/check_prod.sh
 
@@ -319,6 +337,53 @@ restart-prod:
 
 rollback-prod:
 	@./scripts/prod/rollback_prod.sh
+
+# -----------------------------------------------------------------------------
+# Audit
+# -----------------------------------------------------------------------------
+check-ledger-audit:
+	@./scripts/check_ledger_audit.sh
+
+check-prod-stack:
+	@./scripts/check_prod_stack.sh
+
+check-exposure:
+	@./scripts/check_exposure_boundary.sh
+
+check-db-external-ready:
+	@./scripts/check_db_external_ready.sh
+
+check-backup-freshness:
+	@./scripts/check_backup_freshness.sh
+
+print-db-cutover:
+	@echo "========================================"
+	@echo "[DB-CUTOVER] Command Cheatsheet"
+	@echo "========================================"
+	@echo "Full runbook: docs/DB_CUTOVER.md"
+	@echo ""
+	@sed -n '/^## B\. Cutover/,/^## C\./{ /^## C\./d; p; }' docs/DB_CUTOVER.md
+	@echo "----------------------------------------"
+	@sed -n '/^## D\. Rollback/,/^## E\./{ /^## E\./d; p; }' docs/DB_CUTOVER.md
+	@echo "----------------------------------------"
+	@sed -n '/^## F\. Final/,$$p' docs/DB_CUTOVER.md
+	@echo "========================================"
+
+cf-purge-play:
+	@./scripts/cf_purge_play.sh
+
+# Regenerate client/server/go/api/cloudflare_cidr.go from
+# config/cf_cidrs.txt. No-op when already in sync. Also runs as part
+# of deploy_backend_safe.sh so prod always ships the current list.
+cf-cidrs-sync:
+	@./scripts/sync_cf_cidrs_to_server.sh
+
+# Pull the latest CF edge ranges and rewrite config/cf_cidrs.txt.
+# Exits 1 on drift (config was rewritten) — CI opens a PR on that
+# signal. Exits 0 when the list is unchanged. Run manually to force a
+# fresh pull; otherwise the weekly GH Action keeps it up to date.
+cf-cidrs-refresh:
+	@./scripts/refresh_cf_cidrs.sh
 
 # -----------------------------------------------------------------------------
 # Cleanup
